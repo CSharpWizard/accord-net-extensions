@@ -63,6 +63,9 @@ namespace Accord.Math.Geometry
             };
         }
 
-
+        public static float DistanceTo(this Point a, Point b)
+        {
+            return (float)System.Math.Sqrt((a.X - b.X) * (a.X - b.X) + (a.Y - b.Y) * (a.Y - b.Y));
+        }
     }
 }
