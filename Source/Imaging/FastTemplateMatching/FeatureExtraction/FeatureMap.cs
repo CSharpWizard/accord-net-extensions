@@ -12,18 +12,22 @@ using Accord.Math;
 
 namespace LINE2D
 {
-    public unsafe class ColorGradient
+    public unsafe class FeatureMap
     {
-        private static byte[] angleQuantizationTable=null;
+        public static byte INVALID_QUANTIZED_ORIENTATION = GlobalParameters.NUM_OF_QUNATIZED_ORIENTATIONS + 1;
 
-        static ColorGradient()
+        private static byte[] angleQuantizationTable = null;
+
+        #region Quantization table calculation
+
+        static FeatureMap()
         {
-            ColorGradient.angleQuantizationTable = CalculateAngleQuantizationTable();
+            FeatureMap.angleQuantizationTable = CalculateAngleQuantizationTable();
         }
 
         private static byte[] CalculateAngleQuantizationTable()
         {
-            byte[] angleQuantizationTable = new byte[360 + 1];
+            byte[] angleQuantizationTable = new byte[360 + 1/*0..360*/ + 1/*invalid orientation*/];
 
             for (int angle = 0; angle <= 360; angle++)  
             {
@@ -35,11 +39,16 @@ namespace LINE2D
                 angleQuantizationTable[angle] = (byte)directedAngle;
             }
 
+            angleQuantizationTable[GradientOrientation.INVALID_ORIENTATION] = INVALID_QUANTIZED_ORIENTATION;
+
             return angleQuantizationTable;
         }
 
+        #endregion
 
-        public static Image<Gray, Byte> QuantizeOrientations(Image<Gray, int> orientDegImg)
+        #region Orientation quantization and filtering
+
+        private static Image<Gray, Byte> QuantizeOrientations(Image<Gray, int> orientDegImg)
         {
             int* orientDegImgPtr = (int*)orientDegImg.ImageData;
 
@@ -69,11 +78,8 @@ namespace LINE2D
         /// <summary>
         /// Take only those orientations that have MINIMAL_NUM_OF_SAME_ORIENTED_PIXELS in 3x3 negborhood
         /// </summary>
-        public static Image<Gray, Byte> RetainImportantQuantizedOrientations(Image<Gray, Byte> qunatizedOrientionImg,  Image<Gray, int> magnitudeImg, int minValidMagnitude)
+        private static Image<Gray, Byte> RetainImportantQuantizedOrientations(Image<Gray, Byte> qunatizedOrientionImg)
         {
-            int* magPtr = (int*)magnitudeImg.ImageData + magnitudeImg.Width + 1;
-
-
             //debugImg = new Image<Hsv, byte>(orientDegImg.Width, orientDegImg.Height);
             //debugImg = null;
             int qOrinetStride = qunatizedOrientionImg.Stride;
@@ -95,16 +101,16 @@ namespace LINE2D
             {
                 for (int i = 1; i < imgWidth - 1; i++)
                 {
-                    if (*magPtr > 0)
+                    if (*qOrinetUnfilteredPtr != INVALID_QUANTIZED_ORIENTATION)
                     {
-                        byte[] histogram = new byte[GlobalParameters.NUM_OF_QUNATIZED_ORIENTATIONS]; //gleda se susjedstvo 3x3
+                        byte[] histogram = new byte[INVALID_QUANTIZED_ORIENTATION + 1]; //gleda se susjedstvo 3x3
 
                         histogram[qOrinetUnfilteredPtr[-qOrinetStride - 1]]++; histogram[qOrinetUnfilteredPtr[-qOrinetStride + 0]]++; histogram[qOrinetUnfilteredPtr[-qOrinetStride + 1]]++;
                         histogram[qOrinetUnfilteredPtr[-1]]++; histogram[qOrinetUnfilteredPtr[0]]++; histogram[qOrinetUnfilteredPtr[+1]]++;
                         histogram[qOrinetUnfilteredPtr[+qOrinetStride - 1]]++; histogram[qOrinetUnfilteredPtr[+qOrinetStride + 0]]++; histogram[qOrinetUnfilteredPtr[+qOrinetStride + 1]]++;
 
                         int maxBinVotes = 0; byte quantizedAngle = 0;
-                        for (byte histBinIdx = 0; histBinIdx < GlobalParameters.NUM_OF_QUNATIZED_ORIENTATIONS; histBinIdx++)
+                        for (byte histBinIdx = 0; histBinIdx < GlobalParameters.NUM_OF_QUNATIZED_ORIENTATIONS /*discard invalid orientation*/; histBinIdx++)
                         {
                             if (histogram[histBinIdx] > maxBinVotes)
                             {
@@ -120,12 +126,10 @@ namespace LINE2D
                         //debugImg[j, i] = new Hsv((*qOrinetFilteredPtr-1) * 35, 100, 100);
                     }
 
-                    magPtr++;
                     qOrinetUnfilteredPtr++;
                     qOrinetFilteredPtr++;
                 }
 
-                magPtr += 1 + 1;
                 qOrinetUnfilteredPtr += 1 + qOrinetAllign + 1;
                 qOrinetFilteredPtr += 1 + qOrinetAllign + 1; //preskoči zadnji piksel, poravnanje, i početni piksel
             }
@@ -135,7 +139,11 @@ namespace LINE2D
             return quantizedFilteredOrient;
         }
 
-        public static Image<Gray, Byte> SpreadOrientations(Image<Gray, Byte> quantizedOrientationImage, int neghborhood)
+        #endregion
+
+        #region Orientation spreading
+
+        private static Image<Gray, Byte> SpreadOrientations(Image<Gray, Byte> quantizedOrientationImage, int neghborhood)
         {
             byte* srcImgPtr = (byte*)quantizedOrientationImage.ImageData;
             int imgStride = quantizedOrientationImage.Stride;
@@ -187,110 +195,20 @@ namespace LINE2D
             }
         }
 
+        #endregion
 
-        public static void ComputeColor(Image<Bgr, Byte> frame, out Image<Gray, int> magImg, out Image<Gray, int> orientImg)
+        public static Image<Gray, byte> Caclulate(Image<Gray, int> orientationDegImg, int spreadNeigborhood)
         {
-            Image<Bgr, short> dx = frame.Sobel(1, 0, 3);
-            Image<Bgr, short> dy = frame.Sobel(0, 1, 3);
+            Image<Gray, Byte> quantizedOrient = FeatureMap.QuantizeOrientations(orientationDegImg);
+            Image<Gray, Byte> importantQuantizedOrient = FeatureMap.RetainImportantQuantizedOrientations(quantizedOrient);
 
-            short* dxPtr = (short*)dx.ImageData;
-            short* dyPtr = (short*)dy.ImageData;
-            int dxyImgAllignStride = dx.Stride / sizeof(short) - dx.Width * 3;
+            Image<Gray, Byte> sprededQuantizedOrient = importantQuantizedOrient;
+            if(spreadNeigborhood > 1)
+                sprededQuantizedOrient = FeatureMap.SpreadOrientations(importantQuantizedOrient, spreadNeigborhood);
 
-            magImg = new Image<Gray, int>(dx.Width, dx.Height);
-            int* magImgPtr = (int*)magImg.ImageData;
-
-            orientImg = new Image<Gray, int>(dx.Width, dx.Height);
-            int* orientImgPtr = (int*)orientImg.ImageData;
-
-            int imgWidth = dx.Width;
-            int imgHeight = dx.Height;
-
-            for (int j = 0; j < imgHeight; j++)
-            {
-                for (int i = 0; i < imgWidth; i++)
-                {
-                    int B_mag = dxPtr[0] * dxPtr[0] + dyPtr[0] * dyPtr[0];
-                    int G_mag = dxPtr[1] * dxPtr[1] + dyPtr[1] * dyPtr[1];
-                    int R_mag = dxPtr[2] * dxPtr[2] + dyPtr[2] * dyPtr[2];
-
-                    int maxDx, maxDy;
-
-                    if (B_mag > G_mag && B_mag > R_mag)
-                    {
-                        maxDx = dxPtr[0];
-                        maxDy = dyPtr[0];
-                    }
-                    else if (G_mag > B_mag && G_mag > R_mag)
-                    {
-                        maxDx = dxPtr[1];
-                        maxDy = dyPtr[1];
-                    }
-                    else
-                    {
-                        maxDx = dxPtr[2];
-                        maxDy = dyPtr[2];
-                    }
-
-                    int mag = maxDx * maxDx + maxDy * maxDy;
-                    *magImgPtr = Math.Min(255, (int)Math.Sqrt(mag));
-
-                    //*orientImgPtr = (int)(Math.Atan2(maxDy, maxDx) * 180 / Math.PI);
-                    //if (*orientImgPtr < 0)
-                    //    *orientImgPtr += 360;
-                    *orientImgPtr = MathExtensions.Atan2Aprox(*dyPtr, *dxPtr); //faster
-                                         
-                    dxPtr += 3; dyPtr += 3;
-                    /*magImgPtr += 1;*/ orientImgPtr += 1;
-                }
-
-                dxPtr += dxyImgAllignStride;
-                dyPtr += dxyImgAllignStride;
-            }
-
-            //magImg = frame.Canny(70, GlobalParameters.MIN_GRADIENT_THRESHOLD, 3).SmoothGaussian(3).Convert<Gray, byte>().Convert<Gray, int>();
-            //magImg = frame.Convert<Gray, byte>().Canny(70, GlobalParameters.MIN_GRADIENT_THRESHOLD, 3).SmoothGaussian(3).Convert<Gray, int>();
+            return sprededQuantizedOrient;
         }
 
-        public static void ComputeGray(Image<Gray, Byte> frame, out Image<Gray, int> magImg, out Image<Gray, int> orientImg)
-        {
-            Image<Gray, short> dx = frame.Sobel(1, 0, 3);
-            Image<Gray, short> dy = frame.Sobel(0, 1, 3);
-
-            short* dxPtr = (short*)dx.ImageData;
-            short* dyPtr = (short*)dy.ImageData;
-            int dxyImgAllignStride = dx.Stride / sizeof(short) - dx.Width;
-
-            magImg = new Image<Gray, int>(frame.Size);
-            int* magImgPtr = (int*)magImg.ImageData;
-
-            orientImg = new Image<Gray, int>(frame.Size);
-            int* orientImgPtr = (int*)orientImg.ImageData;
-
-            int imgWidth = frame.Width;
-            int imgHeight = frame.Height;
-
-            for (int j = 0; j < imgHeight; j++)
-            {
-                for (int i = 0; i < imgWidth; i++)
-                {
-                    int mag = dxPtr[0] * dxPtr[0] + dyPtr[0] * dyPtr[0];
-                    *magImgPtr = Math.Min(255, (int)Math.Sqrt(mag));
-
-                    //*orientImgPtr = (int)(Math.Atan2(*dyPtr, *dxPtr) * 180 / Math.PI);
-                    *orientImgPtr = MathExtensions.Atan2Aprox(*dyPtr, *dxPtr);
-                    /*if (*orientImgPtr < 0)
-                        *orientImgPtr += 360;*/
-                    //ne treba ?
-
-                    dxPtr += 1; dyPtr += 1;
-                    magImgPtr += 1; orientImgPtr += 1;
-                }
-
-                dxPtr += dxyImgAllignStride;
-                dyPtr += dxyImgAllignStride;
-            }
-        }
     }
 
 }
