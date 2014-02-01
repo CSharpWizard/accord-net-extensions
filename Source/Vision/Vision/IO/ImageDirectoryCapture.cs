@@ -6,22 +6,24 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Timers;
-using Accord.Extensions.Core;
+using Accord.Extensions;
 
 namespace Accord.Extensions.Vision
 {
-   public class ImageSequenceCapture: CaptureBase, IDisposable
+   public class ImageDirectoryCapture: CaptureBase, IDisposable
     {
         string[] fileNames = null;
         int fps = 0;
 
+        Func<string, IImage> loader;
         int currentFrame = 0;
         Timer timer;
 
         #region Initialization
 
-        public ImageSequenceCapture(string filePath, string extension, int frameDelayMilliseconds = 1, bool useNaturalSorting = true)
+        public ImageDirectoryCapture(string filePath, string extension, Func<string, IImage> loader, int frameDelayMilliseconds = 1, bool useNaturalSorting = true)
         {
+            this.loader = loader;
             this.SupportsPausing = true;
 
             string ext = "*." + extension.TrimStart('.', '*');
@@ -78,16 +80,13 @@ namespace Accord.Extensions.Vision
                 return;
             }
 
-            using (var bmp = Bitmap.FromFile(fileNames[currentFrame]))
-            {
-                IImage image = bmp.ToImage();
-                OnVideoFrame(image, false);
-            }
+            IImage image = loader(fileNames[currentFrame]);
+            OnVideoFrame(image, false);
 
             currentFrame++;
         }
 
-        public override System.Drawing.Size VideoSize
+        public override Size VideoSize
         {
             get
             { 
@@ -132,7 +131,7 @@ namespace Accord.Extensions.Vision
             }
         }
 
-        ~ImageSequenceCapture()
+        ~ImageDirectoryCapture()
         {
             if (timer != null)
             {
