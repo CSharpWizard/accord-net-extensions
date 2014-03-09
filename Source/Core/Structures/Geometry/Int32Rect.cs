@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 using Point = AForge.IntPoint;
 using PointF = AForge.Point;
 
@@ -36,44 +40,70 @@ namespace Accord.Extensions
     //
 
     /// <summary>
-    /// Stores a set of four floating-point numbers that represent the location and size of a rectangle.
+    /// Stores a set of four integer numbers that represent the location and size of a rectangle.
     /// </summary>
     [Serializable]
-    public struct RectangleF
+    [ComVisible(true)]
+    public struct Int32Rect
     {
-        private float x, y, width, height;
+        private int x, y, width, height;
 
         /// <summary>
         ///	Empty Shared Field
         /// </summary>
         ///
         /// <remarks>
-        ///	An uninitialized RectangleF Structure.
+        ///	An uninitialized Rectangle Structure.
         /// </remarks>
 
-        public static readonly RectangleF Empty;
+        public static readonly Int32Rect Empty;
 
 #if TARGET_JVM
-		internal java.awt.geom.Rectangle2D NativeObject {
+		internal java.awt.Rectangle NativeObject {
 			get {
-				return new java.awt.geom.Rectangle2D.Float(X,Y,Width,Height);
+				return new java.awt.Rectangle(X,Y,Width,Height);
 			}
 		}
 #endif
+
+        /// <summary>
+        ///	Ceiling Shared Method
+        /// </summary>
+        ///
+        /// <remarks>
+        ///	Produces a Rectangle structure from a RectangleF 
+        ///	structure by taking the ceiling of the X, Y, Width,
+        ///	and Height properties.
+        /// </remarks>
+
+        public static Int32Rect Ceiling(Rect value)
+        {
+            int x, y, w, h;
+            checked
+            {
+                x = (int)Math.Ceiling(value.X);
+                y = (int)Math.Ceiling(value.Y);
+                w = (int)Math.Ceiling(value.Width);
+                h = (int)Math.Ceiling(value.Height);
+            }
+
+            return new Int32Rect(x, y, w, h);
+        }
 
         /// <summary>
         ///	FromLTRB Shared Method
         /// </summary>
         ///
         /// <remarks>
-        ///	Produces a RectangleF structure from left, top, right,
+        ///	Produces a Rectangle structure from left, top, right,
         ///	and bottom coordinates.
         /// </remarks>
 
-        public static RectangleF FromLTRB(float left, float top,
-                           float right, float bottom)
+        public static Int32Rect FromLTRB(int left, int top,
+                          int right, int bottom)
         {
-            return new RectangleF(left, top, right - left, bottom - top);
+            return new Int32Rect(left, top, right - left,
+                          bottom - top);
         }
 
         /// <summary>
@@ -81,16 +111,15 @@ namespace Accord.Extensions
         /// </summary>
         ///
         /// <remarks>
-        ///	Produces a new RectangleF by inflating an existing 
-        ///	RectangleF by the specified coordinate values.
+        ///	Produces a new Rectangle by inflating an existing 
+        ///	Rectangle by the specified coordinate values.
         /// </remarks>
 
-        public static RectangleF Inflate(RectangleF rect,
-                          float x, float y)
+        public static Int32Rect Inflate(Int32Rect rect, int x, int y)
         {
-            RectangleF ir = new RectangleF(rect.X, rect.Y, rect.Width, rect.Height);
-            ir.Inflate(x, y);
-            return ir;
+            Int32Rect r = new Int32Rect(rect.Location, rect.Size);
+            r.Inflate(x, y);
+            return r;
         }
 
         /// <summary>
@@ -98,12 +127,12 @@ namespace Accord.Extensions
         /// </summary>
         ///
         /// <remarks>
-        ///	Inflates the RectangleF by a specified width and height.
+        ///	Inflates the Rectangle by a specified width and height.
         /// </remarks>
 
-        public void Inflate(float x, float y)
+        public void Inflate(int width, int height)
         {
-            Inflate(new SizeF(x, y));
+            Inflate(new Int32Size(width, height));
         }
 
         /// <summary>
@@ -111,15 +140,15 @@ namespace Accord.Extensions
         /// </summary>
         ///
         /// <remarks>
-        ///	Inflates the RectangleF by a specified Size.
+        ///	Inflates the Rectangle by a specified Size.
         /// </remarks>
 
-        public void Inflate(SizeF size)
+        public void Inflate(Int32Size size)
         {
             x -= size.Width;
             y -= size.Height;
-            width += size.Width * 2;
-            height += size.Height * 2;
+            Width += size.Width * 2;
+            Height += size.Height * 2;
         }
 
         /// <summary>
@@ -127,19 +156,18 @@ namespace Accord.Extensions
         /// </summary>
         ///
         /// <remarks>
-        ///	Produces a new RectangleF by intersecting 2 existing 
-        ///	RectangleFs. Returns null if there is no intersection.
+        ///	Produces a new Rectangle by intersecting 2 existing 
+        ///	Rectangles. Returns null if there is no	intersection.
         /// </remarks>
 
-        public static RectangleF Intersect(RectangleF a,
-                            RectangleF b)
+        public static Int32Rect Intersect(Int32Rect a, Int32Rect b)
         {
             // MS.NET returns a non-empty rectangle if the two rectangles
             // touch each other
             if (!a.IntersectsWithInclusive(b))
                 return Empty;
 
-            return FromLTRB(
+            return Int32Rect.FromLTRB(
                 Math.Max(a.Left, b.Left),
                 Math.Max(a.Top, b.Top),
                 Math.Min(a.Right, b.Right),
@@ -151,13 +179,61 @@ namespace Accord.Extensions
         /// </summary>
         ///
         /// <remarks>
-        ///	Replaces the RectangleF with the intersection of itself
-        ///	and another RectangleF.
+        ///	Replaces the Rectangle with the intersection of itself
+        ///	and another Rectangle.
         /// </remarks>
 
-        public void Intersect(RectangleF rect)
+        public void Intersect(Int32Rect rect)
         {
-            this = RectangleF.Intersect(this, rect);
+            this = Int32Rect.Intersect(this, rect);
+        }
+
+        /// <summary>
+        ///	Round Shared Method
+        /// </summary>
+        ///
+        /// <remarks>
+        ///	Produces a Rectangle structure from a RectangleF by
+        ///	rounding the X, Y, Width, and Height properties.
+        /// </remarks>
+
+        public static Int32Rect Round(Rect value)
+        {
+            int x, y, w, h;
+            checked
+            {
+                x = (int)Math.Round(value.X);
+                y = (int)Math.Round(value.Y);
+                w = (int)Math.Round(value.Width);
+                h = (int)Math.Round(value.Height);
+            }
+
+            return new Int32Rect(x, y, w, h);
+        }
+
+        /// <summary>
+        ///	Truncate Shared Method
+        /// </summary>
+        ///
+        /// <remarks>
+        ///	Produces a Rectangle structure from a RectangleF by
+        ///	truncating the X, Y, Width, and Height properties.
+        /// </remarks>
+
+        // LAMESPEC: Should this be floor, or a pure cast to int?
+
+        public static Int32Rect Truncate(Rect value)
+        {
+            int x, y, w, h;
+            checked
+            {
+                x = (int)value.X;
+                y = (int)value.Y;
+                w = (int)value.Width;
+                h = (int)value.Height;
+            }
+
+            return new Int32Rect(x, y, w, h);
         }
 
         /// <summary>
@@ -165,11 +241,11 @@ namespace Accord.Extensions
         /// </summary>
         ///
         /// <remarks>
-        ///	Produces a new RectangleF from the union of 2 existing 
-        ///	RectangleFs.
+        ///	Produces a new Rectangle from the union of 2 existing 
+        ///	Rectangles.
         /// </remarks>
 
-        public static RectangleF Union(RectangleF a, RectangleF b)
+        public static Int32Rect Union(Int32Rect a, Int32Rect b)
         {
             return FromLTRB(Math.Min(a.Left, b.Left),
                      Math.Min(a.Top, b.Top),
@@ -182,15 +258,15 @@ namespace Accord.Extensions
         /// </summary>
         ///
         /// <remarks>
-        ///	Compares two RectangleF objects. The return value is
+        ///	Compares two Rectangle objects. The return value is
         ///	based on the equivalence of the Location and Size 
-        ///	properties of the two RectangleFs.
+        ///	properties of the two Rectangles.
         /// </remarks>
 
-        public static bool operator ==(RectangleF left, RectangleF right)
+        public static bool operator ==(Int32Rect left, Int32Rect right)
         {
-            return (left.X == right.X) && (left.Y == right.Y) &&
-                                (left.Width == right.Width) && (left.Height == right.Height);
+            return ((left.Location == right.Location) &&
+                (left.Size == right.Size));
         }
 
         /// <summary>
@@ -198,28 +274,15 @@ namespace Accord.Extensions
         /// </summary>
         ///
         /// <remarks>
-        ///	Compares two RectangleF objects. The return value is
+        ///	Compares two Rectangle objects. The return value is
         ///	based on the equivalence of the Location and Size 
-        ///	properties of the two RectangleFs.
+        ///	properties of the two Rectangles.
         /// </remarks>
 
-        public static bool operator !=(RectangleF left, RectangleF right)
+        public static bool operator !=(Int32Rect left, Int32Rect right)
         {
-            return (left.X != right.X) || (left.Y != right.Y) ||
-                                (left.Width != right.Width) || (left.Height != right.Height);
-        }
-
-        /// <summary>
-        ///	Rectangle to RectangleF Conversion
-        /// </summary>
-        ///
-        /// <remarks>
-        ///	Converts a Rectangle object to a RectangleF.
-        /// </remarks>
-
-        public static implicit operator RectangleF(Rectangle r)
-        {
-            return new RectangleF(r.X, r.Y, r.Width, r.Height);
+            return ((left.Location != right.Location) ||
+                (left.Size != right.Size));
         }
 
 
@@ -228,14 +291,14 @@ namespace Accord.Extensions
         // -----------------------
 
         /// <summary>
-        ///	RectangleF Constructor
+        ///	Rectangle Constructor
         /// </summary>
         ///
         /// <remarks>
-        ///	Creates a RectangleF from PointF and SizeF values.
+        ///	Creates a Rectangle from Point and Size values.
         /// </remarks>
 
-        public RectangleF(PointF location, SizeF size)
+        public Int32Rect(Point location, Int32Size size)
         {
             x = location.X;
             y = location.Y;
@@ -244,15 +307,15 @@ namespace Accord.Extensions
         }
 
         /// <summary>
-        ///	RectangleF Constructor
+        ///	Rectangle Constructor
         /// </summary>
         ///
         /// <remarks>
-        ///	Creates a RectangleF from a specified x,y location and
+        ///	Creates a Rectangle from a specified x,y location and
         ///	width and height values.
         /// </remarks>
 
-        public RectangleF(float x, float y, float width, float height)
+        public Int32Rect(int x, int y, int width, int height)
         {
             this.x = x;
             this.y = y;
@@ -261,30 +324,22 @@ namespace Accord.Extensions
         }
 
 
-#if TARGET_JVM
-		internal RectangleF (java.awt.geom.RectangularShape r2d) {
-			this.x = (float) r2d.getX ();
-			this.y = (float) r2d.getY ();
-			this.width = (float) r2d.getWidth ();
-			this.height = (float) r2d.getHeight ();
-		}
-#endif
 
         /// <summary>
         ///	Bottom Property
         /// </summary>
         ///
         /// <remarks>
-        ///	The Y coordinate of the bottom edge of the RectangleF.
+        ///	The Y coordinate of the bottom edge of the Rectangle.
         ///	Read only.
         /// </remarks>
 
         [Browsable(false)]
-        public float Bottom
+        public int Bottom
         {
             get
             {
-                return Y + Height;
+                return y + height;
             }
         }
 
@@ -293,10 +348,10 @@ namespace Accord.Extensions
         /// </summary>
         ///
         /// <remarks>
-        ///	The Height of the RectangleF.
+        ///	The Height of the Rectangle.
         /// </remarks>
 
-        public float Height
+        public int Height
         {
             get
             {
@@ -314,14 +369,13 @@ namespace Accord.Extensions
         ///
         /// <remarks>
         ///	Indicates if the width or height are zero. Read only.
-        /// </remarks>
-        //		
+        /// </remarks>		
         [Browsable(false)]
         public bool IsEmpty
         {
             get
             {
-                return (width <= 0 || height <= 0);
+                return ((x == 0) && (y == 0) && (width == 0) && (height == 0));
             }
         }
 
@@ -330,12 +384,12 @@ namespace Accord.Extensions
         /// </summary>
         ///
         /// <remarks>
-        ///	The X coordinate of the left edge of the RectangleF.
+        ///	The X coordinate of the left edge of the Rectangle.
         ///	Read only.
         /// </remarks>
 
         [Browsable(false)]
-        public float Left
+        public int Left
         {
             get
             {
@@ -348,15 +402,15 @@ namespace Accord.Extensions
         /// </summary>
         ///
         /// <remarks>
-        ///	The Location of the top-left corner of the RectangleF.
+        ///	The Location of the top-left corner of the Rectangle.
         /// </remarks>
 
         [Browsable(false)]
-        public PointF Location
+        public Point Location
         {
             get
             {
-                return new PointF(x, y);
+                return new Point(x, y);
             }
             set
             {
@@ -370,12 +424,12 @@ namespace Accord.Extensions
         /// </summary>
         ///
         /// <remarks>
-        ///	The X coordinate of the right edge of the RectangleF.
+        ///	The X coordinate of the right edge of the Rectangle.
         ///	Read only.
         /// </remarks>
 
         [Browsable(false)]
-        public float Right
+        public int Right
         {
             get
             {
@@ -388,20 +442,20 @@ namespace Accord.Extensions
         /// </summary>
         ///
         /// <remarks>
-        ///	The Size of the RectangleF.
+        ///	The Size of the Rectangle.
         /// </remarks>
 
         [Browsable(false)]
-        public SizeF Size
+        public Int32Size Size
         {
             get
             {
-                return new SizeF(width, height);
+                return new Int32Size(Width, Height);
             }
             set
             {
-                width = value.Width;
-                height = value.Height;
+                Width = value.Width;
+                Height = value.Height;
             }
         }
 
@@ -410,16 +464,16 @@ namespace Accord.Extensions
         /// </summary>
         ///
         /// <remarks>
-        ///	The Y coordinate of the top edge of the RectangleF.
+        ///	The Y coordinate of the top edge of the Rectangle.
         ///	Read only.
         /// </remarks>
 
         [Browsable(false)]
-        public float Top
+        public int Top
         {
             get
             {
-                return Y;
+                return y;
             }
         }
 
@@ -428,10 +482,10 @@ namespace Accord.Extensions
         /// </summary>
         ///
         /// <remarks>
-        ///	The Width of the RectangleF.
+        ///	The Width of the Rectangle.
         /// </remarks>
 
-        public float Width
+        public int Width
         {
             get
             {
@@ -448,10 +502,10 @@ namespace Accord.Extensions
         /// </summary>
         ///
         /// <remarks>
-        ///	The X coordinate of the RectangleF.
+        ///	The X coordinate of the Rectangle.
         /// </remarks>
 
-        public float X
+        public int X
         {
             get
             {
@@ -468,10 +522,10 @@ namespace Accord.Extensions
         /// </summary>
         ///
         /// <remarks>
-        ///	The Y coordinate of the RectangleF.
+        ///	The Y coordinate of the Rectangle.
         /// </remarks>
 
-        public float Y
+        public int Y
         {
             get
             {
@@ -488,10 +542,10 @@ namespace Accord.Extensions
         /// </summary>
         ///
         /// <remarks>
-        ///	Checks if an x,y coordinate lies within this RectangleF.
+        ///	Checks if an x,y coordinate lies within this Rectangle.
         /// </remarks>
 
-        public bool Contains(float x, float y)
+        public bool Contains(int x, int y)
         {
             return ((x >= Left) && (x < Right) &&
                 (y >= Top) && (y < Bottom));
@@ -502,10 +556,10 @@ namespace Accord.Extensions
         /// </summary>
         ///
         /// <remarks>
-        ///	Checks if a Point lies within this RectangleF.
+        ///	Checks if a Point lies within this Rectangle.
         /// </remarks>
 
-        public bool Contains(PointF pt)
+        public bool Contains(Point pt)
         {
             return Contains(pt.X, pt.Y);
         }
@@ -515,11 +569,11 @@ namespace Accord.Extensions
         /// </summary>
         ///
         /// <remarks>
-        ///	Checks if a RectangleF lies entirely within this 
-        ///	RectangleF.
+        ///	Checks if a Rectangle lies entirely within this 
+        ///	Rectangle.
         /// </remarks>
 
-        public bool Contains(RectangleF rect)
+        public bool Contains(Int32Rect rect)
         {
             return (rect == Intersect(this, rect));
         }
@@ -529,15 +583,15 @@ namespace Accord.Extensions
         /// </summary>
         ///
         /// <remarks>
-        ///	Checks equivalence of this RectangleF and an object.
+        ///	Checks equivalence of this Rectangle and another object.
         /// </remarks>
 
         public override bool Equals(object obj)
         {
-            if (!(obj is RectangleF))
+            if (!(obj is Int32Rect))
                 return false;
 
-            return (this == (RectangleF)obj);
+            return (this == (Int32Rect)obj);
         }
 
         /// <summary>
@@ -550,7 +604,7 @@ namespace Accord.Extensions
 
         public override int GetHashCode()
         {
-            return (int)(x + y + width + height);
+            return (height + width) ^ x + y;
         }
 
         /// <summary>
@@ -558,16 +612,16 @@ namespace Accord.Extensions
         /// </summary>
         ///
         /// <remarks>
-        ///	Checks if a RectangleF intersects with this one.
+        ///	Checks if a Rectangle intersects with this one.
         /// </remarks>
 
-        public bool IntersectsWith(RectangleF rect)
+        public bool IntersectsWith(Int32Rect rect)
         {
             return !((Left >= rect.Right) || (Right <= rect.Left) ||
                 (Top >= rect.Bottom) || (Bottom <= rect.Top));
         }
 
-        private bool IntersectsWithInclusive(RectangleF r)
+        private bool IntersectsWithInclusive(Int32Rect r)
         {
             return !((Left > r.Right) || (Right < r.Left) ||
                 (Top > r.Bottom) || (Bottom < r.Top));
@@ -578,13 +632,13 @@ namespace Accord.Extensions
         /// </summary>
         ///
         /// <remarks>
-        ///	Moves the RectangleF a specified distance.
+        ///	Moves the Rectangle a specified distance.
         /// </remarks>
 
-        public void Offset(float x, float y)
+        public void Offset(int x, int y)
         {
-            X += x;
-            Y += y;
+            this.x += x;
+            this.y += y;
         }
 
         /// <summary>
@@ -592,11 +646,13 @@ namespace Accord.Extensions
         /// </summary>
         ///
         /// <remarks>
-        ///	Moves the RectangleF a specified distance.
+        ///	Moves the Rectangle a specified distance.
         /// </remarks>
-        public void Offset(PointF pos)
+
+        public void Offset(Point pos)
         {
-            Offset(pos.X, pos.Y);
+            x += pos.X;
+            y += pos.Y;
         }
 
         /// <summary>
@@ -604,12 +660,14 @@ namespace Accord.Extensions
         /// </summary>
         ///
         /// <remarks>
-        ///	Formats the RectangleF in (x,y,w,h) notation.
+        ///	Formats the Rectangle as a string in (x,y,w,h) notation.
         /// </remarks>
+
         public override string ToString()
         {
             return String.Format("{{X={0},Y={1},Width={2},Height={3}}}",
                          x, y, width, height);
         }
+
     }
 }
