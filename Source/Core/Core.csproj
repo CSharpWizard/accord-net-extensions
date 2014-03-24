@@ -45,7 +45,6 @@
     <Compile Include="Caching\LRUCache%271.cs" />
     <Compile Include="Collections\Map.cs" />
     <Compile Include="Caching\LazyMemoryCache%271.cs" />
-    <Compile Include="Diagnostics\Diagnostics.cs" />
     <Compile Include="Extensions\BinaryTreeArrayExtstensions.cs" />
     <Compile Include="Extensions\DictionaryMatrixExtensions.cs" />
     <Compile Include="Extensions\Enumerable.IndexOfMax.cs" />

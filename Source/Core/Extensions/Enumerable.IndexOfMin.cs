@@ -55,7 +55,6 @@ namespace Accord.Extensions
         public static int IndexOfMin<TSource, TKey>(this IEnumerable<TSource> collection, Func<TSource, int, TKey> selector, IComparer<TKey> comparer)
         {
             int idx = 0;
-            int idxOfMin = 0;
             using (var sourceIterator = collection.GetEnumerator())
             {
                 if (!sourceIterator.MoveNext())
@@ -65,19 +64,18 @@ namespace Accord.Extensions
 
                 while (sourceIterator.MoveNext())
                 {
-                    idx++;
-
                     var item = sourceIterator.Current;
                     var key = selector(item, idx);
 
                     if (comparer.Compare(key, minKey) < 0)
                     {
                         minKey = key;
-                        idxOfMin = idx;
                     }
+
+                    idx++;
                 }
 
-                return idxOfMin;
+                return idx;
             }
         }
     }

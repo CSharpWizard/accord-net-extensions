@@ -151,14 +151,14 @@ namespace Accord.Extensions.Imaging.Converters
                         return true;
                 }
 
-                //allow only cast between generic and non-generic color type
+                //allow only cast between generic and non-genric color type
                 if ((srcColor.IsGenericColorSpace && !dstColor.IsGenericColorSpace) || (!srcColor.IsGenericColorSpace && dstColor.IsGenericColorSpace))
                 {
                     if (path.CopiesData())
                         return true;
                 }
 
-                return false; //return false if the path is valid (does not need to be removed)
+                return false; //is valid path
             });
         }
 

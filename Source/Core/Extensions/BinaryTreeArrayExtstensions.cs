@@ -4,11 +4,6 @@ namespace Accord.Extensions.BinaryTree
 {
     public static class BinaryTreeArrayExtstensions
     {
-        public static int ParentIndex<T>(this IList<T> collection, int nodeIndex)
-        {
-            return (nodeIndex - 1) / 2;
-        }
-
         public static int LeftChildIndex<T>(this IList<T> collection, int parentIndex)
         {
             return parentIndex * 2 + 1;

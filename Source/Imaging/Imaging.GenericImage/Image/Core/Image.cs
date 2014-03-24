@@ -9,7 +9,8 @@ using System.Xml.Serialization;
 namespace Accord.Extensions.Imaging
 {
     public partial class Image : IImage, IEquatable<Image>, IXmlSerializable
-    {      
+    {
+        bool mustBeDisposed; //if the buffer is allocated this variable is set to true, false otherwise (e.g. image cast)
         PinnedArray<byte> buffer = null;
 
         object objectReference = null; //prevents disposing parent object if sharing data (GetSubRect(..), casting...)
@@ -71,7 +72,7 @@ namespace Accord.Extensions.Imaging
             int stride = calculateStride(im.ColorInfo, width, strideAllignment);
             var buffer = new PinnedArray<byte>(stride * height);
 
-            im.IsAllocated = true;
+            im.mustBeDisposed = true;
             im.buffer = buffer;
 
             initializeProperties(im, buffer.Data, width, height, stride);
@@ -87,7 +88,7 @@ namespace Accord.Extensions.Imaging
         /// <param name="buffer">Image buffer.</param>
         protected static void Initialize(Image im, int width, int height, int stride, PinnedArray<byte> buffer)
         {
-            im.IsAllocated = true;
+            im.mustBeDisposed = true;
             im.buffer = buffer;
            
             initializeProperties(im, buffer.Data, width, height, stride);
@@ -104,7 +105,7 @@ namespace Accord.Extensions.Imaging
         /// <param name="parentDestructor">If a parent needs to be destroyed or release use this function. (e.g. unpin object - GCHandle)</param>
         protected static void Initialize(Image im, IntPtr imageData, int width, int height, int stride, object parentReference = null, Action<object> parentDestructor = null)
         {
-            im.IsAllocated = false;
+            im.mustBeDisposed = false;
             im.buffer = null;
 
             initializeProperties(im, imageData, width, height, stride);
@@ -144,7 +145,7 @@ namespace Accord.Extensions.Imaging
         {
             if (isDisposed) return; //if this function is called for the first time
 
-            if (IsAllocated) //must be disposed
+            if (mustBeDisposed) //must be disposed
             {
                 buffer.Dispose();
                 buffer = null;
@@ -194,10 +195,6 @@ namespace Accord.Extensions.Imaging
         /// Gets image color info.
         /// </summary>
         public ColorInfo ColorInfo { get; protected set; }
-        /// <summary>
-        /// True if the data (internal buffer) is allocated, false otherwise (e.g. image cast).
-        /// </summary>
-        public bool IsAllocated { get; private set; }
 
         /// <summary>
         /// Gets or sets image channel.
