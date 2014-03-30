@@ -45,6 +45,7 @@
     <Compile Include="Caching\LRUCache%271.cs" />
     <Compile Include="Collections\Map.cs" />
     <Compile Include="Caching\LazyMemoryCache%271.cs" />
+    <Compile Include="Diagnostics\Diagnostics.cs" />
     <Compile Include="Extensions\BinaryTreeArrayExtstensions.cs" />
     <Compile Include="Extensions\DictionaryMatrixExtensions.cs" />
     <Compile Include="Extensions\Enumerable.IndexOfMax.cs" />
@@ -55,7 +56,8 @@
     <Compile Include="Imaging\IColor.cs" />
     <Compile Include="Caching\MethodCache.cs" />
     <Compile Include="NaturalSortComparer.cs" />
-    <Compile Include="ParallelFilterProcessing\ParallelProcessor.cs" />
+    <Compile Include="ParallelProcessing\ParallelExtensions.cs" />
+    <Compile Include="ParallelProcessing\ParallelProcessor.cs" />
     <Compile Include="Collections\CircularList.cs" />
     <Compile Include="Extensions\SerializationExtensions.cs" />
     <Compile Include="Structures\Geometry\RectangleF.cs" />
