@@ -18,7 +18,7 @@ namespace Accord.Extensions.Vision
     /// It is the base class for classes providing image stream reading.
     /// </summary>
     /// <typeparam name="TImage">Image type.</typeparam>
-    public abstract class StreamableSource<TImage>: IDisposable, IEnumerable<TImage>
+    public abstract class StreamableSource<TImage> : ImageStream<TImage>, IEnumerable<TImage>
         where TImage: IImage
     {
         /// <summary>
@@ -26,66 +26,13 @@ namespace Accord.Extensions.Vision
         /// </summary>
         protected StreamableSource()
         {
-            this.CanSeek = false;
-            this.IsLiveStream = false;
             this.ReadTimeout = 100;
         }
 
-       /// <summary>
-       /// When overridden in a derived class, gets the length in number of frames.
-       /// </summary>
-        public abstract long Length { get; }
-
         /// <summary>
-        /// When overridden in a derived class, gets the next frame index.
-        /// </summary>
-        public virtual long Position { get; protected set; }
-
-        /// <summary>
-        /// Gets whether the stream is live stream meaning that its length is not constant.
-        /// Those streams are usually not seekable <see cref="CanSeek"/>.
-        /// </summary>
-        public virtual bool IsLiveStream { get; protected set; }
-
-        /// <summary>
-        /// Gets a value indicating whether the current stream supports seeking.
-        /// </summary>
-        public virtual bool CanSeek { get; protected set; }
-
-        /// <summary>
-        /// Gets or sets a value, in miliseconds, that determines how long the stream will attempt to read before timing out.
+        /// Gets or sets a value, in milliseconds, that determines how long the stream will attempt to read before timing out.
         /// </summary>
         public int ReadTimeout { get; set; }
-
-        /// <summary>
-        /// When overridden in a derived class, sets the position within the current stream.
-        /// </summary>
-        /// <param name="offset">A frame index offset relative to the origin parameter.</param>
-        /// <param name="origin">A value of type System.IO.SeekOrigin indicating the reference point used to obtain the new position.</param>
-        /// <returns>The new position within the current stream.</returns>
-        /// <exception cref="NotSupportedException">The stream is does not support seeking.</exception>
-        public virtual long Seek(long offset, System.IO.SeekOrigin origin = SeekOrigin.Current)
-        {
-            if (!this.CanSeek)
-                throw new NotSupportedException();
-
-            long newPosition = 0;
-            switch (origin)
-            {
-                case SeekOrigin.Begin:
-                    newPosition = offset;
-                    break;
-                case SeekOrigin.Current:
-                    newPosition = this.Position + offset;
-                    break;
-                case SeekOrigin.End:
-                    newPosition = this.Length + offset;
-                    break;
-            }
-
-            var currentFrame = System.Math.Min(this.Length, System.Math.Max(0, newPosition));
-            return currentFrame;
-        }
 
         /// <summary>
         /// Creates and starts the task responsible for frame reading.
@@ -100,7 +47,7 @@ namespace Accord.Extensions.Vision
             var readTask = new Task<TImage>(() =>
             {
                 TImage result;
-                Read(out result);
+                ReadInternal(out result);
                 return result;
             });
 
@@ -135,31 +82,12 @@ namespace Accord.Extensions.Vision
         }
 
         /// <summary>
-        /// Releases all resources.
-        /// </summary>
-        public virtual void Dispose()
-        {
-            this.Close();
-        }
-
-        /// <summary>
-        /// When overridden in a derived class, opens the current stream. 
-        /// </summary>
-        public abstract void Open();
-
-        /// <summary>
-        /// When overridden in a derived class, closes the current stream and releases any resources associated with the current stream.
-        /// This function is internally called by <see cref="Dispose"/>.
-        /// </summary>
-        public abstract void Close();
-
-        /// <summary>
         /// When overridden in a derived class returns an image and a status.
         /// Position is advanced.
         /// </summary>
         /// <param name="image">Read image.</param>
         /// <returns></returns>
-        protected abstract bool Read(out TImage image);
+        protected abstract bool ReadInternal(out TImage image);
 
         #region IEnumerable
 

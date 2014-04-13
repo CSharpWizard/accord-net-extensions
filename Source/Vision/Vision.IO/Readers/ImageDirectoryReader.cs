@@ -8,7 +8,7 @@ using System.Threading;
 namespace Accord.Extensions.Vision
 {
     /// <summary>
-    /// Represents directory streamable source and provides functions and properties to access data in a streamable way.
+    /// Represents directory stream-able source and provides functions and properties to access data in a stream-able way.
     /// </summary>
     public class ImageDirectoryReader : StreamableSource
     {
@@ -87,7 +87,7 @@ namespace Accord.Extensions.Vision
         }
 
         object syncObj = new object();
-        protected override bool Read(out IImage image)
+        protected override bool ReadInternal(out IImage image)
         {
             lock (syncObj)
             {
@@ -117,7 +117,7 @@ namespace Accord.Extensions.Vision
         /// Sets the position within the current stream.
         /// </summary>
         /// <param name="offset">A frame index offset relative to the origin parameter.</param>
-        /// <param name="origin">A value of type System.IO.SeekOrigin indicating the reference point used to obtain the new position.</param>
+        /// <param name="origin">A value of type <see cref="System.IO.SeekOrigin"/> indicating the reference point used to obtain the new position.</param>
         /// <returns>The new position within the current stream.</returns>
         public override long Seek(long offset, SeekOrigin origin = SeekOrigin.Current)
         {
@@ -125,12 +125,18 @@ namespace Accord.Extensions.Vision
             return Math.Max(0, Math.Min(currentFrame, this.Length));
         }
 
+
+        #region Specific function
+
         /// <summary>
         /// Gets the current image file name.
+        /// <para>If the position of the stream is equal to the stream length null is returned.</para>
         /// </summary>
         public string CurrentImageName
         {
-            get { return fileNames[this.Position]; }
+            get { return (this.Position < fileNames.Length) ? fileNames[this.Position] : null; }
         }
+
+        #endregion
     }
 }

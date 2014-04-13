@@ -32,7 +32,7 @@ namespace Accord.Extensions.Vision
         }
 
         object syncObj = new object();
-        protected override bool Read(out IImage image)
+        protected override bool ReadInternal(out IImage image)
         {
             bool status = false;
             image = default(IImage);
