@@ -7,11 +7,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Test
+namespace GenericImage
 {
     public partial class Test
     {
-        public void WriteAllConversionPaths()
+        public static void WriteAllConversionPaths()
         {
             writeConversionPaths();
         }

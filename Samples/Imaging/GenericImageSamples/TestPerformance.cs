@@ -1,22 +1,21 @@
 ﻿using Accord.Extensions.Imaging;
+using Accord.Extensions.Math;
+using Accord.Math;
 using AForge.Imaging;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Accord.Extensions.Math;
-using Accord.Extensions.Imaging.Filters;
-using System.Drawing;
-using Accord.Math;
+using System.IO;
 
-namespace Test
+namespace GenericImage
 {
     public partial class Test
     {
-        public void TestConvolve(int kernelSize)
+        static string resourceFolder = Path.Combine(new DirectoryInfo(Environment.CurrentDirectory).Parent.FullName, "Resources");
+        static string colorImgName = Path.Combine(resourceFolder, "colorBig.jpg");
+        static string FFT_sampleImgName = Path.Combine(resourceFolder, "FFT-sample.bmp");
+
+        public static void TestConvolve(int kernelSize)
         {
-            var bmp = (System.Drawing.Bitmap)System.Drawing.Bitmap.FromFile("nature-spring.jpg");
+            var bmp = (System.Drawing.Bitmap)System.Drawing.Bitmap.FromFile(colorImgName);
             var smallIm = bmp.ToImage<Bgr, byte>();/*.Resize(new Size(320, 240), InterpolationMode.NearestNeighbor);*/ //AForge convolution takes too long
 
             var image = smallIm.Convert<Bgr, float>(); //do not measure converting byte->float and float->byte
@@ -40,9 +39,9 @@ namespace Test
             "AForge Convolve");     
         }
 
-        public void TestColorConversion()
+        public static void TestColorConversion()
         {
-            var bmp = (System.Drawing.Bitmap)System.Drawing.Bitmap.FromFile("nature-spring.jpg");
+            var bmp = (System.Drawing.Bitmap)System.Drawing.Bitmap.FromFile(colorImgName);
 
             var image = bmp.ToImage<Bgr, byte>();
             UnmanagedImage uIm = UnmanagedImage.FromManagedImage(bmp);
@@ -60,11 +59,11 @@ namespace Test
             "AForge Bgr->Gray Conversion");     
         }
 
-        public void TestFFT()
+        public static void TestFFT()
         {
-            var bmp = (System.Drawing.Bitmap)System.Drawing.Bitmap.FromFile("sampleFFT.jpg");
+            var bmp = (System.Drawing.Bitmap)System.Drawing.Bitmap.FromFile(FFT_sampleImgName);
 
-            var image = bmp.ToImage<Complex, float>();
+            var image = bmp.ToImage<Gray, byte>().Convert<Complex, float>();
             ComplexImage cuIm = ComplexImage.FromBitmap(bmp);
 
             measure(() =>
@@ -78,14 +77,14 @@ namespace Test
                 cuIm.ForwardFourierTransform();
                 cuIm.BackwardFourierTransform();
             },
-            1000,
+            100,
             "Image<,> FFT",
             "AForge FFT");     
         }
 
-        public void TestColorFiltering()
+        public static void TestColorFiltering()
         {
-            var bmp = (System.Drawing.Bitmap)System.Drawing.Bitmap.FromFile("nature-spring.jpg");
+            var bmp = (System.Drawing.Bitmap)System.Drawing.Bitmap.FromFile(colorImgName);
 
             var image = bmp.ToImage<Bgr, byte>();
             UnmanagedImage uIm = UnmanagedImage.FromManagedImage(bmp);
@@ -110,9 +109,9 @@ namespace Test
             "AForge HSL filtering");
         }
 
-        public void TestChannelModifier()
+        public static void TestChannelModifier()
         {
-            var bmp = (System.Drawing.Bitmap)System.Drawing.Bitmap.FromFile("nature-spring.jpg");
+            var bmp = (System.Drawing.Bitmap)System.Drawing.Bitmap.FromFile(colorImgName);
 
             var image = bmp.ToImage<Bgr, byte>();
             UnmanagedImage uIm = UnmanagedImage.FromManagedImage(bmp);
@@ -137,9 +136,9 @@ namespace Test
             "AForge Hue modifier");
         }
 
-        public void TestColorCasting()
+        public static void TestColorCasting()
         {
-            var bmp = (System.Drawing.Bitmap)System.Drawing.Bitmap.FromFile("nature-spring.jpg");
+            var bmp = (System.Drawing.Bitmap)System.Drawing.Bitmap.FromFile(colorImgName);
 
             var image = bmp.ToImage<Bgr, byte>();
 
