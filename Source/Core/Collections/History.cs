@@ -216,10 +216,10 @@ namespace Accord.Extensions
             return (++idx < this.Count);
         }
 
-        int idx = -1;
+        int idx = 0;
         void System.Collections.IEnumerator.Reset()
         {
-            idx = -1;
+            idx = 0;
         }
         #endregion
     }

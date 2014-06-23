@@ -10,12 +10,12 @@ namespace Accord.Extensions
     /// <summary>
     /// Represents options for parallel patch computing.
     /// </summary>
-    public class ParallelOptions2D
+    public class ParallelOptions
     {
         /// <summary>
         /// Creates default options.
         /// </summary>
-        public ParallelOptions2D()
+        public ParallelOptions()
         {
 #if DEBUG
             ForceSequential = true;
@@ -60,7 +60,7 @@ namespace Accord.Extensions
         /// Function that creates destination structure.
         /// </summary>
         /// <returns></returns>
-        public delegate TDest FieldCreator();
+        public delegate TDest ImageCreator();
         /// <summary>
         /// Function that performs patch processing.
         /// </summary>
@@ -71,7 +71,7 @@ namespace Accord.Extensions
 
         private List<Rectangle> patches;
 
-        protected FieldCreator destImageCreator;
+        protected ImageCreator destImageCreator;
         private ProcessPatch processPatch;
         private Size imageSize;
         private bool runParallel;
@@ -80,29 +80,29 @@ namespace Accord.Extensions
         /// Creates parallel patch processor.
         /// </summary>
         /// <param name="imageSize">2D structure size.</param>
-        /// <param name="destFieldCreator">Function that creates destination structure.</param>
+        /// <param name="destImageCreator">Function that creates destination structure.</param>
         /// <param name="processPatch">Function that performs patch processing.</param>
-        public ParallelProcessor(Size imageSize, FieldCreator destFieldCreator, ProcessPatch processPatch)
-            : this(imageSize, destFieldCreator, processPatch, new ParallelOptions2D(), 0)
+        public ParallelProcessor(Size imageSize, ImageCreator destImageCreator, ProcessPatch processPatch)
+            : this(imageSize, destImageCreator, processPatch, new ParallelOptions(), 0)
         { }
 
         /// <summary>
         /// Creates parallel patch processor.
         /// </summary>
         /// <param name="imageSize">2D structure size.</param>
-        /// <param name="destFieldCreator">Function that creates destination structure.</param>
+        /// <param name="destImageCreator">Function that creates destination structure.</param>
         /// <param name="processPatch">Function that performs patch processing.</param>
         /// <param name="parallelOptions">Parallel options.</param>
         /// <param name="minPatchHeight">Minimal patch height. Patches that has lower size will not be created.</param>
-        public ParallelProcessor(Size imageSize, FieldCreator destFieldCreator, ProcessPatch processPatch, ParallelOptions2D parallelOptions, int minPatchHeight = 0)
+        public ParallelProcessor(Size imageSize, ImageCreator destImageCreator, ProcessPatch processPatch, ParallelOptions parallelOptions, int minPatchHeight = 0)
         {
-            Initialize(imageSize, destFieldCreator, processPatch, parallelOptions, minPatchHeight);
+            Initialize(imageSize, destImageCreator, processPatch, parallelOptions, minPatchHeight);
         }
 
         protected ParallelProcessor()
         { }
 
-        protected void Initialize(Size imageSize, FieldCreator destImageCreator, ProcessPatch processPatch, ParallelOptions2D parallelOptions, int minPatchHeight)
+        protected void Initialize(Size imageSize, ImageCreator destImageCreator, ProcessPatch processPatch, ParallelOptions parallelOptions, int minPatchHeight)
         {
             this.imageSize = imageSize;
             this.destImageCreator = destImageCreator;
@@ -118,7 +118,7 @@ namespace Accord.Extensions
         /// <summary>
         /// Gets or sets image creator. Thus function is called only once.
         /// </summary>
-        public FieldCreator DestImageCreator { get { return destImageCreator; } set { destImageCreator = value; } }
+        public ImageCreator DestImageCreator { get { return destImageCreator; } set { destImageCreator = value; } }
         /// <summary>
         /// Gets or sets patch process function. This function is called for every patch.
         /// </summary>
@@ -127,9 +127,9 @@ namespace Accord.Extensions
         /// <summary>
         /// Runs parallel processor.
         /// </summary>
-        /// <param name="field2D">Source image</param>
-        /// <returns>Processed destination image. The image which is created with <see cref="FieldCreator"/>.</returns>
-        public virtual TDest Process(TSrc field2D)
+        /// <param name="image">Source image</param>
+        /// <returns>Processed destination image. The image which is created with <see cref="ImageCreator"/>.</returns>
+        public virtual TDest Process(TSrc image)
         {
             TDest destImg = destImageCreator();
 
@@ -138,30 +138,30 @@ namespace Accord.Extensions
                 //do patches
                 Parallel.For(0, patches.Count, (int i) =>
                 {
-                    processPatch(field2D, destImg, patches[i]);
+                    processPatch(image, destImg, patches[i]);
                 });
             }
             else //process sequential
             {
-                processPatch(field2D, destImg, new Rectangle(new Point(), imageSize));
+                processPatch(image, destImg, new Rectangle(new Point(), imageSize));
             }
 
             return destImg;
         }
 
-        private void makePatches(Size fieldSize, int minPatchHeight, out List<Rectangle> patches)
+        private void makePatches(Size imgSize, int minPatchHeight, out List<Rectangle> patches)
         {
             int patchHeight, verticalPatches;
-            getPatchInfo(fieldSize, out patchHeight, out verticalPatches);
+            getPatchInfo(imgSize, out patchHeight, out verticalPatches);
             minPatchHeight = System.Math.Max(minPatchHeight, patchHeight);
 
             patches = new List<Rectangle>();
 
-            for (int y = 0; y < fieldSize.Height; )
+            for (int y = 0; y < imgSize.Height; )
             {
-                int h = System.Math.Min(patchHeight, fieldSize.Height - y);
+                int h = System.Math.Min(patchHeight, imgSize.Height - y);
 
-                Rectangle patch = new Rectangle(0, y, fieldSize.Width, h);
+                Rectangle patch = new Rectangle(0, y, imgSize.Width, h);
                 patches.Add(patch);
 
                 y += h;
@@ -186,19 +186,19 @@ namespace Accord.Extensions
             }
         }
 
-        private void getPatchInfo(Size fieldSize, out int patchHeight, out int verticalPatches)
+        private void getPatchInfo(Size imgSize, out int patchHeight, out int verticalPatches)
         {
             int numOfCores = System.Environment.ProcessorCount;
             int minNumOfPatches = numOfCores * 2;
 
-            float avgNumPatchElements = (float)(fieldSize.Width * fieldSize.Height) / minNumOfPatches;
+            float avgNumPatchElements = (float)(imgSize.Width * imgSize.Height) / minNumOfPatches;
 
             //make patch look like a long stripe (it is probably more efficient to process than a square patch)
-            patchHeight = (int)System.Math.Floor(avgNumPatchElements / fieldSize.Width);
+            patchHeight = (int)System.Math.Floor(avgNumPatchElements / imgSize.Width);
             patchHeight = Math.Max(1, patchHeight); //if the image height is < num of CPUs
 
             //get number of patches
-            verticalPatches = (int)System.Math.Ceiling((float)fieldSize.Height / patchHeight);
+            verticalPatches = (int)System.Math.Ceiling((float)imgSize.Height / patchHeight);
         }
     }
 }

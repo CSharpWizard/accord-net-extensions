@@ -53,7 +53,7 @@ namespace Accord.Extensions.Imaging
 
                                                               supressNonMaximaFunc(img.GetSubRect(srcArea), dest.GetSubRect(srcArea), radius, discardValue);
                                                           },
-                                                          new ParallelOptions2D {  /*ForceSequential = true*/ });
+                                                          new ParallelOptions {  /*ForceSequential = true*/ });
 
             proc.Process(img);
         }

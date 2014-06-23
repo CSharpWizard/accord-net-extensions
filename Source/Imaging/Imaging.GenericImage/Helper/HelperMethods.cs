@@ -56,7 +56,7 @@ namespace Accord.Extensions.Imaging.Helper
             where TColor: IColor
             where TDepth: struct
         {
-            var fields = typeof(TColor).GetFields(BindingFlags.Public | ~BindingFlags.Static);
+            var fields = typeof(TColor).GetFields();
 
             TDepth[] arr = new TDepth[fields.Length];
 

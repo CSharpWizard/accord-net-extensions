@@ -261,7 +261,7 @@ namespace Accord.Extensions.Imaging.Converters
 #if DEBUG
                   ,new ParallelOptions { ForceSequential = true }
 #else
-                  ,new ParallelOptions2D { ForceSequential = conversionData.ForceSequential }
+                  ,new ParallelOptions { ForceSequential = conversionData.ForceSequential }
 #endif
                 );
 

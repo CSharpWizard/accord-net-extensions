@@ -39,7 +39,7 @@ namespace Accord.Extensions.Imaging
                                                              goodFeaturesToTrack(Dxx.GetSubRect(srcArea), Dxy.GetSubRect(srcArea), Dyy.GetSubRect(area),
                                                                                  winSize, minEigVal, strengthImg.GetSubRect(srcArea));
                                                          },
-                                                         new ParallelOptions2D {  /*ForceSequential = true*/ },
+                                                         new ParallelOptions {  /*ForceSequential = true*/ },
                                                          winSize);
 
             proc.Process(true);
