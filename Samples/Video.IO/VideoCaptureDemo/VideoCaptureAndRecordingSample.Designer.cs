@@ -1,6 +1,6 @@
 ﻿namespace VideoCapture
 {
-    partial class VideoCaptureDemo
+    partial class VideoCaptureAndRecordingSample
     {
         /// <summary>
         /// Required designer variable.
@@ -28,7 +28,9 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.pictureBox = new System.Windows.Forms.PictureBox();
+            this.timer = new System.Windows.Forms.Timer(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox)).BeginInit();
             this.SuspendLayout();
             // 
@@ -38,21 +40,25 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.pictureBox.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pictureBox.Location = new System.Drawing.Point(12, 12);
-            this.pictureBox.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.pictureBox.Location = new System.Drawing.Point(9, 10);
+            this.pictureBox.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.pictureBox.Name = "pictureBox";
-            this.pictureBox.Size = new System.Drawing.Size(853, 590);
+            this.pictureBox.Size = new System.Drawing.Size(640, 480);
             this.pictureBox.TabIndex = 1;
             this.pictureBox.TabStop = false;
             // 
-            // VideoCaptureDemo
+            // timer
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
+            this.timer.Interval = 30;
+            // 
+            // VideoCaptureAndRecordingSample
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(876, 610);
+            this.ClientSize = new System.Drawing.Size(657, 496);
             this.Controls.Add(this.pictureBox);
-            this.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.Name = "VideoCaptureDemo";
+            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.Name = "VideoCaptureAndRecordingSample";
             this.Text = "Video Capture Demo";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.VideoCaptureDemo_FormClosing);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox)).EndInit();
@@ -63,6 +69,7 @@
         #endregion
 
         private System.Windows.Forms.PictureBox pictureBox;
+        private System.Windows.Forms.Timer timer;
     }
 }
 
