@@ -25,7 +25,7 @@ adds support for:
 	  7) implements new algorithms 
 	  		a) Camshift (parallel) + demo, 
 	  		b) KLT (parallel) + demo, 
-	  		c) ParticleFilter + demo x 2, 
+	  		c) ParticleFilter + demo, 
 	  		d) KalmanFilter + demo x 2
 	  		e) Fast template matching (~20x faster than conventional) + demo
 	  		f) numerous extensions (e.g. contour, shape...) + demo x 1 + tests
@@ -33,6 +33,7 @@ adds support for:
    
 roadmap: //TODO list
 	  
-	update samples
+	implement missing overloads
+	write extension methods for existing classes/filters
 	overall look and feel
 	prepare to relase!
