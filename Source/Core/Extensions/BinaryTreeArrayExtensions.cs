@@ -29,7 +29,7 @@ namespace Accord.Extensions.BinaryTree
     /// Contains methods that simulate binary tree using array.
     /// <para>All methods are extension on <see cref="System.Collections.Generic.IList{T}"/></para>
     /// </summary>
-    public static class BinaryTreeArrayExtstensions
+    public static class BinaryTreeArrayExtensions
     {
         /// <summary>
         /// Gets leaf node indices.
