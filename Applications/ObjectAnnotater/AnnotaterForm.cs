@@ -35,7 +35,7 @@ using ObjectAnnotater.Components;
 
 namespace ObjectAnnotater
 {
-    public partial class ObjectAnnotater : Form
+    public partial class AnnotaterForm : Form
     {
         ImageStreamReader capture = null;
         string databaseFileName = null;
@@ -43,12 +43,12 @@ namespace ObjectAnnotater
 
         DrawingManager drawingManager = null;
 
-        public ObjectAnnotater()
+        public AnnotaterForm()
         {
             InitializeComponent();
         }
 
-        public ObjectAnnotater(ImageStreamReader capture, string databaseFileName)
+        public AnnotaterForm(ImageStreamReader capture, string databaseFileName)
         {
             InitializeComponent();
 
@@ -209,7 +209,30 @@ namespace ObjectAnnotater
                     break;
             }
 
+            //move slider right away
+            if (!slider.ContainsFocus)
+            {
+                switch (keyData)
+                {
+                    case Keys.Down:
+                    case Keys.Right:
+                        slider.Value = Math.Min(slider.Maximum, slider.Value + slider.SmallChange);
+                        break;
+                    case Keys.Up:
+                    case Keys.Left:
+                        slider.Value = Math.Max(slider.Minimum, slider.Value - slider.SmallChange);
+                        break;
+                }
+
+                getFrame(slider.Value);
+            }
+
             return base.ProcessCmdKey(ref msg, keyData);
+        }
+
+        private void slider_Scroll(object sender, EventArgs e)
+        { 
+            getFrame(slider.Value);
         }
 
         private void btnToggleLabels_CheckedChanged(object sender, EventArgs e)
@@ -228,11 +251,6 @@ namespace ObjectAnnotater
         private void btnSave_Click(object sender, EventArgs e)
         {
             saveToFile();          
-        }
-
-        private void slider_Scroll(object sender, EventArgs e)
-        {
-            getFrame(slider.Value);
         }
 
         private void btnPrepareSamples_Click(object sender, EventArgs e)
