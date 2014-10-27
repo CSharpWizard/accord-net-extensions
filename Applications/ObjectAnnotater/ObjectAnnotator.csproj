@@ -7,8 +7,8 @@
     <ProjectGuid>{199259A4-217D-4057-8930-2B49A890014F}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ObjectAnnotater</RootNamespace>
-    <AssemblyName>ObjectAnnotater</AssemblyName>
+    <RootNamespace>ObjectAnnotator</RootNamespace>
+    <AssemblyName>ObjectAnnotator</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -122,6 +122,7 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
     <EmbeddedResource Include="SampleGeneration\SampleExtraction.resx">
       <DependentUpon>SampleExtraction.cs</DependentUpon>
@@ -132,6 +133,8 @@
     <EmbeddedResource Include="Wizard.resx">
       <DependentUpon>Wizard.cs</DependentUpon>
     </EmbeddedResource>
+    <None Include="Documentation\Object Annotator - instructions.docx" />
+    <None Include="Documentation\Object Annotator - instructions.pdf" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
