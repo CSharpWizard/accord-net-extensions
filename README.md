@@ -6,7 +6,7 @@
     
     <td>
     <ul>
-     <li>Version: 1.2.0 (release candidate)</li>
+     <li>Version: 1.2.1 (release candidate)</li>
      <li>NuGet packages: <a href="https://www.nuget.org/profiles/dajuric"><strong>ready</strong> <i>(pre-release)</i></a></li>
      <li>
        Help: <a href="https://github.com/dajuric/accord-net-extensions/raw/master/Deployment/Documentation/Help/Accord.NET%20Extensions%20Documentation.chm"> Offline </a> - <i>unblock after download!</i></li>
@@ -27,6 +27,10 @@
         </ul>
      </li>
     </ul>
+    </td>
+  </tr>
+  <tr>
+    <td><a href="https://gitter.im/dajuric/accord-net-extensions?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge" title="Join the chat at https://gitter.im/dajuric/accord-net-extensions"><img src="https://badges.gitter.im/Join%20Chat.svg" alt=""/></a></td>
     </td>
   </tr>
 </table>
@@ -178,7 +182,7 @@ The framework is divided in libraries available through NuGet packages. The libr
 <p align="justify">
   <ul>
     <li>
-     If you like the project please star it in order to help to spread the word. That way you will make the framework more significant and in the same time you will motivate me to improve it, so the benefit is mutual.
+     If you like the project please <b>star it</b> in order to help to spread the word. That way you will make the framework more significant and in the same time you will motivate me to improve it, so the benefit is mutual.
     </li>
     
     <li>
