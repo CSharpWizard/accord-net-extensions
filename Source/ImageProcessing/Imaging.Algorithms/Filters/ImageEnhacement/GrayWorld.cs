@@ -21,7 +21,6 @@
 #endregion
 
 using System;
-using AForge.Imaging;
 using Accord.Imaging.Filters;
 using DotImaging;
 

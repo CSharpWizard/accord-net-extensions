@@ -19,7 +19,7 @@
     <tags>accord.net framework extensions</tags>
 
     <dependencies>
-      <dependency id="Accord"                 version="3.0.2" />
+      <dependency id="AForge"                 version="2.2.5" />
     </dependencies>
   </metadata>
   

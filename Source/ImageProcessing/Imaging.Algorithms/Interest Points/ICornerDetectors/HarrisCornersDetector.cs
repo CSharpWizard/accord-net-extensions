@@ -20,7 +20,6 @@
 //
 #endregion
 
-using AForge.Imaging;
 using Accord.Imaging;
 using System.Collections.Generic;
 using DotImaging;
